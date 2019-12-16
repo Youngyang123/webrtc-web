@@ -33,8 +33,9 @@ wss.on('connection', function (connection) {
         break;
       case "offer":
         console.log("Sending offer to", data.name);
+        // 在map中找到对应的用户的连接
         var conn = users[data.name];
-
+        // 发送offer
         if (conn != null) {
           connection.otherName = data.name;
           sendTo(conn, {
@@ -118,3 +119,5 @@ function sendTo(conn, message) {
 wss.on('listening', function () {
     console.log("Server started...");
 });
+
+

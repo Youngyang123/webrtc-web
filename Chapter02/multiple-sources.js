@@ -1,44 +1,51 @@
 function hasUserMedia() {
-  return !!(navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+  return !!(navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia)
 }
 
 if (hasUserMedia()) {
-  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
 
-  MediaStreamTrack.getSources(function(sources) {
-    var audioSource = null;
-    var videoSource = null;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    console.log("不支持 enumerateDevices()")
+  }
 
-    for (var i = 0; i != sources.length; ++i) {
-      var source = sources[i];
+  navigator.mediaDevices
+      .enumerateDevices().then(devices => {
+    let audioSource = null
+    let videoSource = null
 
-      if(source.kind === "audio") {
-        console.log("发现麦克风:", source.label, source.id);
-        audioSource = source.id;
-      } else if (source.kind === "video") {
-        console.log("发现摄像头:", source.label, source.id);
-        videoSource = source.id;
+    devices.forEach(device => {
+      if(device.kind === "audio") {
+        console.log("发现麦克风:", device.label, device.id)
+        audioSource = device.id
+      } else if (device.kind === "video") {
+        console.log("发现摄像头:", device.label, device.id)
+        videoSource = device.id
       } else {
-        console.log("发现未知资源:", source);
+        console.log("发现未知资源:", device)
       }
-    }
+    })
 
-    var constraints = {
+
+    let constraints = {
       audio: {
         optional: [{sourceId: audioSource}]
       },
       video: {
         optional: [{sourceId: videoSource}]
       }
-    };
+    }
 
-    navigator.getUserMedia(constraints, function (stream) {
-      var video = document.querySelector('video');
-      video.src = window.URL.createObjectURL(stream);
-    }, function (error) {
-      console.log("Raised an error when capturing:", error);
-    });
-  });
+    navigator.getUserMedia(constraints, stream => {
+      let video = document.querySelector('video')
+      video.src = window.URL.createObjectURL(stream)
+    }, error => {
+      console.log("获取媒体流发生错误:", error)
+    })
+
+  }).catch(err => {
+    console.log("enumerateDevices获取所有媒体发生错误："+err)
+  })
 } else {
-  alert("Sorry, your browser does not support getUserMedia.");
+  alert("对不起，你的浏览器不支持getUserMedia")
 }

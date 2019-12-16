@@ -1,7 +1,7 @@
 var name,
     connectedUser;
 
-var connection = new WebSocket('ws://localhost:8888');
+var connection = new WebSocket('ws://localhost:8008/websocket');
 
 connection.onopen = function () {
   console.log("Connected");
@@ -89,7 +89,9 @@ function startConnection() {
   if (hasUserMedia()) {
     navigator.getUserMedia({ video: true, audio: false }, function (myStream) {
       stream = myStream;
-      yourVideo.src = window.URL.createObjectURL(stream);
+
+      // yourVideo.src = window.URL.createObjectURL(stream);
+      yourVideo.srcObject = stream
 
       if (hasRTCPeerConnection()) {
         setupPeerConnection(stream);
@@ -106,14 +108,17 @@ function startConnection() {
 
 function setupPeerConnection(stream) {
   var configuration = {
-    "iceServers": [{ "url": "stun:127.0.0.1:9876" }]
+    // 注释后使用浏览器默认的stun服务器
+    // "iceServers": [{ "url": "stun:127.0.0.1:9876" }]
   };
   yourConnection = new RTCPeerConnection(configuration);
 
   // Setup stream listening
   yourConnection.addStream(stream);
   yourConnection.onaddstream = function (e) {
-    theirVideo.src = window.URL.createObjectURL(e.stream);
+
+    // theirVideo.src = window.URL.createObjectURL(e.stream);
+    theirVideo.srcObject = stream
   };
 
   // Setup ice handling
@@ -195,7 +200,7 @@ hangUpButton.addEventListener("click", function () {
 
 function onLeave() {
   connectedUser = null;
-  theirVideo.src = null;
+  theirVideo.srcObject = null;
   yourConnection.close();
   yourConnection.onicecandidate = null;
   yourConnection.onaddstream = null;
